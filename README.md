@@ -3,4 +3,4 @@ This repository contains codes related to problem sets in BT2101 Econometrics Mo
 
 | S/N | Problem Set | File 						|
 | --- | ---			| ---  				 		|
-| 1   | 4			| ./Problem%20Set%204.ipynb	|
+| 1   | 4			| [Problem Set 4](./Problem%20Set%204.ipynb)	|
