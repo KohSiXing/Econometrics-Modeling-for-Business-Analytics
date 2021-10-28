@@ -7,5 +7,6 @@ This repository contains codes related to problem sets in BT2101 Econometrics Mo
 
 ### Additional Guides
 
-| S/N | File		|
+| S/N | File													 |
+| --- | ---														 |
 | 1   |	[p-values](./p-value%20from%20T%20or%20Z%20scores.ipynb) |
