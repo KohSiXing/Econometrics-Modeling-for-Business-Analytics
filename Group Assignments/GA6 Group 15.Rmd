@@ -1,0 +1,69 @@
+---
+title: "BT2101: Group Assignment 6"
+author: "Group 15: Sim Ruibin; Lian Yu Xiang; Koh Si Xing; Ong Shen Quan, Jaryl; Passion Goh Wei Ling"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+## Preparation
+
+```{r load-libraries, echo=TRUE, warning = FALSE, message = FALSE}
+# load required packages
+# install any package below if it's first time loaded in your computer.
+library(wooldridge) 
+library(dplyr)
+library(ivreg)
+library(ggplot2) 
+```
+
+## Group Assignment 6
+
+### a
+
+
+<p> The coefficient of attend_v is -0.0008530, which implies that viewing strongly violent movie is associated with a decrease of 0.0008530 in ln_assault. This translates to 100 * 0.0008530 = 0.8350% decrease in number of assaults. The coefficient is not statistically significant, given that the p-value is 0.33936, which is much larger than 0.05. </p>
+
+
+```{r q-a, echo=TRUE}
+movies <- read.csv("./movies.csv")
+movies$ln_assaults <- log(movies$assaults)
+
+model <- lm(formula = ln_assaults ~ . - year10 - month12, data = movies[c(3, 15:51)])
+summary(model)
+```
+
+### b
+
+
+<p> It is a valid instrument because it is correlated with the attendance for strongly violent movies this weekend. That is, they should be as similar as possible. In terms of instrument exogeneity, it is not correlated with other variables since it is dependent on past values (excluding the attendance of this current week) of attend_v which are used for predicting the attendance for violent movies. As such, pr_attend_v only affects the dependent variable ln_assaults through attend_v which was used for predicting the values in pr_attend_v. </p>
+
+
+
+### c
+
+
+<p> For the first stage regression, the multiple R-squared states that about 92.98% of the variation in the attendance for strongly violent movies is explained by the variation of predicted attendance for violent movies.From the stage 2 regression, the result suggests that an increase in attendance of strongly violent movies by 1 unit (1 million) reduces the number of assaults by 0.1098%. However, the estimate is statistically insignificant with a p-value of 0.23641, which is larger than 0.05. </p>
+
+```{r q-c, echo=TRUE}
+m <- lm(attend_v ~ pr_attend_v, data = movies)
+summary(m)
+movies$pr_attend_v_2sls <- m$coefficients[1] + m$coefficients[2] * movies$pr_attend_v
+
+model2 <- lm(formula = ln_assaults ~ . - year10 - month12, data = movies[c(52, 15:51)])
+summary(model2)
+```
+
+### d
+
+
+<p> The coefficient of attend_v is –0.0010973 which is similar to part c where the coefficient of pr_attend_v_2sls is –0.001098 and both are not statistically significant with similar p-value of 0.23668. In part c the use of a valid instrument pr_attend_v is similar to using ivreg as both are carrying out iv regressions. Thus, both show similar effects. The slight difference is likely due to an error of precision since both ivreg and lm are from different packages. However, the results from the model in (c) and (d) do not vary too far from one another since both are using 2sls method, they should arrive at the same solution. </p>
+
+```{r q-d, echo=TRUE}
+model3 <- ivreg(formula = ln_assaults ~ . - year10 - month12 - pr_attend_v_2sls, instruments = ~ . - attend_v , data = movies[c(3, 15:52)])
+summary(model3)
+```
+
+

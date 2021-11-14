@@ -1,0 +1,132 @@
+---
+title: "BT2101: Group Assignment 4"
+author: "Group 15: Sim Ruibin; Lian Yu Xiang; Koh Si Xing; Ong Shen Quan, Jaryl; Passion Goh Wei Ling"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+## Preparation
+
+```{r load-libraries, echo=TRUE, warning = FALSE, message = FALSE}
+# load required packages
+library(AER) # AER data set will be used 
+library(plm)
+library(dplyr)
+library(ggplot2) 
+```
+
+## Group Assignment 3
+
+### a
+
+
+<p> The coefficient of beertax is 3.646 x 10-5, which implies that one unit increase in beertax is associated with a 3.646 x 10-5 unit increase in fatality rate. The coefficient is statistically significant at 0.1%. This is contrary to our expectation, since higher beer tax is supposed to discourage alcohol consumption, which would lower the rate of drink driving, and thus lower the rate of traffic fatalities </p>
+
+
+```{r q-a, echo=TRUE}
+# read dataset into workplace
+data("Fatalities")
+Fatalities <- force(Fatalities)
+
+Fatalities$FatalityRate <- Fatalities$fatal / Fatalities$pop
+
+model1 <- lm(FatalityRate ~ beertax, data = Fatalities)
+summary(model1)
+```
+
+### b
+
+
+<p> The panel data is balanced since all the 48 have data for each of the years from year 1982 - 1988. Each of the state has all 7 years. 48 x 7 = 336 observations</p>
+
+```{r q-b, echo=TRUE}
+uniqueStates <- unique(Fatalities$state)
+
+for (s in uniqueStates) {
+  print(Fatalities %>% filter(state == s) %>% select(state, year))
+}
+```
+
+
+### c
+
+<p> The coefficient for beertax decreased from 3.646 x 10-5 to -6.559 X 10-5, which is a 1.0205 x 10-5 decrease. The p-value increased from 1.08e-08 to 0.000556, which shows there is a slight decrease in the statistical significance. However, the new coefficient of beertax is still statistically significant. Although including state fixed effects eliminates the risk of a bias due to omitted factors that vary across states but not over time, we suspect that there are other omitted variables that vary over time and thus cause a bias. </p>
+
+```{r q-c, echo=TRUE}
+newFatal <- Fatalities %>% select(c(state, year, beertax, FatalityRate))
+#FatalSDM <- cbind(subset(Fatalities2, select = c(year, beertax, FatalityRate)), model.matrix(~ state-1, Fatalities2))
+
+F2 <- within(newFatal, state <- relevel(state, ref = "al"))
+model2 <- lm(FatalityRate ~ beertax + state, data = F2)
+summary(model2)
+```
+
+
+### d
+
+
+<p> The coefficient for beertax increases slightly by 0.0174 x 10-5 while the statistical significance remains the same as the basic model. In view of the basic model and model 2, we conclude that the estimated relationship between traffic fatalities and the real beer tax is not affected by omitted variable bias due to factors that are constant over time. </p>
+
+```{r q-d, echo=TRUE}
+F3 <- within(newFatal, year <- relevel(year, ref = "1982"))
+model3 <- lm(FatalityRate ~ beertax + year, data = F3)
+summary(model3)
+```
+
+
+### e
+
+<p> The coefficient for beertax is -6.5587 x 10-5, which is approximately similar to that of model 2. The results are identical because plm() is similar to lm(), such that it is a more convenient function which enables us to estimate linear panel regression models. Plm() also uses the lm() technique to estimate a regression line for Panel Data. However, the key difference can be seen from the R2 and Adjusted R2. This is due to the original lm using OLS and making it a better fit, thus resulting in a higher R2 and Adjusted R2 value. In this case, since the parameter specified is “within”, which means a Fixed-Effects model is used for plm. </p>
+
+```{r q-e, echo=TRUE}
+model4<- plm(FatalityRate ~ beertax,
+                    data = Fatalities,
+                    index = c("state", "year"),
+                    model = "within")
+summary(model4)
+
+```
+
+
+### f
+
+<p> The coefficient for beertax is 3.6634 x 10-5, which is identical to that of model 3. The only difference is only with the R2 and adjusted R2. This is because plm uses lm for panel data. In addition, model 3 have already made the year from a numeric discrete data into a categorical data. Which is similar to the plm fixed effects. Both methods use the “n-1 regressors” technique in which a base year 1982 is used as a reference level. </p>
+
+
+```{r q-f, echo=TRUE}
+model5<- plm(FatalityRate ~ beertax,
+           data = Fatalities,
+           index = c("state", "year"),
+           model = "within",
+           effect = "time")
+summary(model5)
+
+```
+
+### g
+
+<p> Time FE regression controls for all variables that are constant over all entities for each time period. Similarly, state FE regression also controls for all variables that are constant for an entity over time, regardless of whether it is a confounding variable or not. However, economic situation is not time or entity invariant, hence there is a need to include in model 3 to prevent omitted variable bias. Furthermore, the GDP predictor variable will be recorded, and can be used in the model as the change as well. </p>
+
+
+### h
+
+<p> The model has the same result as model 4 and model 2 as by demeaning the state variable, model 6 eliminates bias from factors that differ across entities but are constant over time which is similar to model 2 accounting factors that differ across state by including state into the model. While model 4 is a panel data that has accounted for omitted unobservable factors that differ across  </p>
+
+
+```{r q-h, echo=TRUE}
+model6 <- lm(FatalityRate ~ beertax + state - 1, data = Fatalities)
+summary(model6)
+```
+
+### i
+
+<p> The model has the same result as model 3 and model 5 as by demeaning the time variable, model 7 eliminates bias from factors that differ across time but are constant over entities which is similar to model 3 accounting factors that differ across time by including year into the model. While model 5 is a panel data that has accounted for omitted unobservable factors that differ across time. </p>
+
+
+```{r q-i, echo=TRUE}
+model7 <- lm(FatalityRate ~ beertax + year- 1, data = Fatalities)
+summary(model7)
+```

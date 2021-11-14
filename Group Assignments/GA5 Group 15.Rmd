@@ -1,0 +1,130 @@
+---
+title: "BT2101: Group Assignment 5"
+author: "Group 15: Sim Ruibin; Lian Yu Xiang; Koh Si Xing; Ong Shen Quan, Jaryl; Passion Goh Wei Ling"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+## Preparation
+
+```{r load-libraries, echo=TRUE, warning = FALSE, message = FALSE}
+# load required packages
+# install any package below if it's first time loaded in your computer.
+library(wooldridge) # wooldridge data set will be used 
+library(dplyr)
+library(plm)
+library(ggplot2) 
+```
+
+## Group Assignment 5
+
+### a
+
+
+<p> For every unit increase in grantit results in an increase of hrsemp by 33.71094 on average throughout the years 1987 – 1989. The coefficient is statistically significant at 5% significant level as the p-value (2e^-16) is smaller than 0.05. </p>
+
+
+```{r q-a, echo=TRUE}
+# read dataset into workplace, note that you need library(wooldridge) to load this data set
+data(jtrain)
+jtrain <- force(jtrain)
+jtrain <- na.omit(jtrain)
+
+jtrain$year <- as.factor(jtrain$year)
+jtrain$fcode <- as.factor(jtrain$fcode)
+
+model<- lm(hrsemp ~ grant + employ, data = jtrain)
+summary(model)
+```
+
+### b
+
+
+<p> There are quite a few variables that are potential confounders like sales, avg salary. Larger firms generate higher revenue and can reduce costs due to larger economies of scale, and thus generate more profits and pay a higher salary. Since they have higher earnings, it is also very likely that these firms will spend more money to train their employees to increase their sales which can result in a cyclic dependency between sales and hrsemp.<br /><br />
+
+tothrs and totrain are also possible confounders. Larger firms will need to send more of their employees to training. Since hrsemp = tothrs / totrain, these variables affect the outcome variable as well. In addition, there can be autocorrelation between sales of each year since earning a large revenue in the past year is likely to mean that the next year, that firm will have roughly the same number of sales. This can also be said for avgsal. <br/><br/>
+
+Another confounder could be the industry the firm is in.  More technologically advanced industries such as semi-conductors manufacturing plant will require more hours to train their employees due to the higher skill levels required, resulting in longer training hours. These industries are also more lucrative for the government to develop and will be more likely to receive grants.
+<br /><br />
+
+The last confounder we found is the ratio of employees to the size of the company. The smaller the ratio, the easier it is for companies to afford job training since it has less employees than it can afford for job training. It is correlated to grant because the smaller the ratio, the less need for grants / companies are not dependent on grant as the main source of money to fund job training. It is a potential determinant of the outcome variable, as it is more insightful as compared to the employ variable.
+ </p>
+
+
+
+### c
+
+
+<p>Time-invariant: tothrs, totrain <br />
+Firm-invariant: Industry the firms are in, assuming the firms used in the study are from the same industry <br />
+Flexible: Sales, avgsal, employee to size ratio
+ </p>
+
+
+### d
+
+
+<p> The quadratic and cubic forms account for any quadratic or cubic relationship between the hrsemp and grant. The coefficients of these terms give us insights on whether the relationship is linear, quadratic, or cubic. However, since grant is only a binary variable i.e. 1 or 0, its quadratic or cubic form will also be {0,1}. As such when grant is 0, its quadratic and cubic form will be 0 and likewise when grant is 1, grant^2 and grant^3 will be 1 too. Thus, the results will still be the same as model 1 as seen below. These values will be dropped due to perfect multicollinearity and no new information is retrieved.</p>
+
+```{r q-d, echo=TRUE}
+
+jtrain$grant2 <- jtrain$grant^2
+
+model2 <- lm(hrsemp ~ grant + grant2 + employ,
+                    data = jtrain)
+summary(model2)
+
+jtrain$grant3 <- jtrain$grant ^ 3
+
+model3 <- lm(hrsemp ~ grant + grant2 + grant3 + employ, data = jtrain)
+summary(model3)
+
+```
+
+
+### e
+
+
+<p> If a grant is being provided, it is associated with a 163% increase in hrsemp. Since this is a log-linear relationship, a unit increase in grant can be associated with a 1.63 (to 3 s.f.) x 100% x 1 = 211%.</p>
+
+```{r q-e, echo=TRUE}
+
+model4 <- lm(lhrsemp ~ grant + employ, data = jtrain)
+summary(model4)
+```
+
+### f
+
+<p> There will be an increase from 24.84311 in the original model to 32.5169 in the model adding all fcodes and years. However, Grant is still a significant variable at 5% significant level as its p-value of 0.00356 is less than 0.05. </p>
+
+
+```{r q-f, echo=TRUE}
+model5 <- lm(hrsemp ~ grant + employ + fcode + year, data = jtrain)
+summary(model5)
+```
+
+### g
+
+<p>The coefficient of grant is about the same as the model in f as it is 32.3829. There might be some rounding off errors in R resulting in a difference of 0.2 for the models in f and in g but they should get the same results. It is an increase from the original model’s coefficient of grant 24.84311 and it is still a significant factor at a 5% significance level since its p-value is 1.41e-05. This is because the basic model did not account for state and time fixed effects, but this model and the model in (f) do, hence the coefficients are different. </p>
+
+```{r q-g, echo=TRUE}
+dmJtrain <- with(jtrain,
+                 data.frame(dmHrsemp = hrsemp - ave(hrsemp,fcode) - ave(hrsemp, year),
+                            dmGrant = grant - ave(grant, fcode) - ave(grant, year),
+                            dmEmploy = employ - ave(employ, fcode) - ave(employ, year) 
+                            )
+                 )
+
+model6 <- lm(dmHrsemp ~ dmGrant + dmEmploy, data = dmJtrain)
+summary(model6)
+```
+
+### h
+
+<p>Time-invariant and Firm-invariant variables such as tothrs, totrain and industry of firms are accounted for in the models in (g) and (f) as for (f) the fcode and year variables are added into the linear model hence are controlled for, while for model in (g) the panel data controls all time and entity invariant variables in the model. Thus, there would be no omitted variable bias due to these variables. While for variables such as Sales and avgsal are variable both in time and firm, thus it must be explicitly added as an independent variable in the model. <br /><br />
+The ratio of employee to size of the company is partially controlled for by the employ variable, which controls for the number of employees in the plant. Size can be measured using sales of a company However, it is not as accurate since the employ variable is an absolute indicator compared to the ratio which is a relative indicator. A company can be large but have little employees and hence less need for the training grant. Thus, the ratio should be controlled for. <br /><br /> 
+Since we already have the data on the number of employees, we can form the ratio by employ / sales.
+ </p>

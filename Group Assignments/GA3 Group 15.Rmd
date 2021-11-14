@@ -1,0 +1,97 @@
+---
+title: "BT2101: Group Assignment 3"
+author: "Group 15: Sim Ruibin; Lian Yu Xiang; Koh Si Xing; Ong Shen Quan, Jaryl; Passion Goh Wei Ling"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+## Preparation
+
+```{r load-libraries, echo=TRUE, warning = FALSE, message = FALSE}
+# load required packages
+# install any package below if it's first time loaded in your computer.
+library(wooldridge) # wooldridge data set will be used 
+library(dplyr)
+library(ggplot2) 
+```
+
+## Group Assignment 3
+
+### a
+
+
+<p> Time: afchnge (before and after the change) <br/>
+Intervention: highearn (treatment vs control grp) <br />
+Interaction: afhigh (to find out if the effect of the change in policy will differ with regards to a change in the grp)
+
+If the worker is a high earner and is injured after the change in the policy, then the worker received e^0.191 = 1.21 week longer of worker compensation.</p>
+
+
+```{r q3-a, echo=TRUE}
+# read dataset into workplace, note that you need library(wooldridge) to load this data set
+data(injury)
+injury <- force(injury)
+
+# Find Kentucky
+Kentucky = subset(injury, ky == 1)
+
+reg <- lm(ldurat ~ highearn + afchnge + afhigh, data = Kentucky)
+summary(reg)
+```
+
+### b
+
+
+<p> Since the outcome variable is ldurat, the coefficient would cause the actual duration, length of time in weeks that a worker receives worker compensation when injured, to be e ^ (β0 + β1 * highearn + β2 * afchnge + β3 * afhigh) </p>
+
+
+
+### c
+
+
+<p> If the coefficient is positive, we will multiply the predictor variables by e^(coefficient). If the coefficient is negative, we will divide the predictor variables by e^(coefficient) </p>
+
+
+### d
+
+
+<p>Before adding the control variables, the estimate is statistically significant at 5% significance level as the p-value = 0.00542 < 0.05. The interaction term’s coefficient (afhigh) increases from 0.190 to 0.230. The estimate remains statistically significant at 5% significance level as the p-value = 0.000945 < 0.05. We can interpret the change in the coefficient of the interaction term as we account for the other covariates that can affect the duration. </p>
+
+```{r q3-d, echo=TRUE}
+Kentucky$indust <- as.factor(Kentucky$indust)
+newreg <- lm(ldurat ~ highearn + afchnge + afhigh + male + married + indust + head + neck + upextr + trunk + lowback + lowextr, data = Kentucky)
+summary(newreg)
+
+```
+
+
+### e
+
+
+<p> It means that the proportion of variance in the ldurat accounted by these variables is 0.02114. Although this number is small, it does not mean the estimation is useless as the variables are still statistically significant. Furthermore, the adjusted R2 increased from 0.02014 to 0.03856, which mean that these variables added have contributed significantly to the model.  </p>
+
+
+### f
+
+<p> For DID to be valid, there must be parallel trend between the control and treatment groups. The assumption of parallel trend is where in the absence of the treatment (the change in benefits), the unobserved differences between the “treatment” and “control” (between high and low-income workers) are constant over time. Peforming t test of the difference in mean ldurat across the treatment (high earners) and control (low earners) groups during the pre-treatment era. Since p-value < 0.01, we reject the null hypothesis that difference in means is equal to 0. Furthermore, we do not have enough data to plot a graph to visualise the high income and low income groups overtime, before and after the policy comes into play, for us to even conclude if there is even parallel trend for these two groups in the first place.</p>
+
+
+```{r q3-f, echo=TRUE}
+#filter for pre-trend kentucky
+kentucky_pretrend <- Kentucky[which(Kentucky$afchnge == 0),]
+ 
+#filter for low earners in pre-trend kentucky
+lowearn_pretrend <- kentucky_pretrend[which(kentucky_pretrend$highearn == 0),]
+low_ldurat <- lowearn_pretrend %>%
+                select(ldurat)
+ 
+#filter for high earners in pre-trend kentucky
+highearn_pretrend <- kentucky_pretrend[which(kentucky_pretrend$highearn == 1),]
+high_ldurat <- highearn_pretrend %>%
+                  select(ldurat)
+ 
+t.test(low_ldurat,high_ldurat)
+```
