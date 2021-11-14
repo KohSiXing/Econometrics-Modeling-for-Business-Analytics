@@ -10,14 +10,14 @@ This repository contains codes related to problem sets in BT2101 Econometrics Mo
 
 | S/N | Group Assignment | File 										|
 | --- | ---				 | --- 					 				 		|
-| 1   | 1				 | Group Assignment 1[^*]	|
-| 2   | 2				 | Group Assignment 2[^*]	|
-| 3   | 3				 | [Group Assignment 3](./Group%20Assignments/%20GA3%20Group%2015.rmd)	|
-| 4   | 4				 | [Group Assignment 4](./Group%20Assignments/%20GA4%20Group%2015.rmd)	|
-| 5   | 5				 | [Group Assignment 5](./Group%20Assignments/%20GA5%20Group%2015.rmd)	|
-| 6   | 6				 | [Group Assignment 6](./Group%20Assignments/%20GA6%20Group%2015.rmd)	|
+| 1   | 1				 | Group Assignment 1[^1]	|
+| 2   | 2				 | Group Assignment 2[^1]	|
+| 3   | 3				 | [Group Assignment 3](./Group%20Assignments/GA3%20Group%2015.Rmd)	|
+| 4   | 4				 | [Group Assignment 4](./Group%20Assignments/GA4%20Group%2015.Rmd)	|
+| 5   | 5				 | [Group Assignment 5](./Group%20Assignments/GA5%20Group%2015.Rmd)	|
+| 6   | 6				 | [Group Assignment 6](./Group%20Assignments/GA6%20Group%2015.Rmd)	|
 
-[^*]: The codes for these files will be uploaded on a later date
+[^1]: The codes for these files will be uploaded on a later date
 
 ### Additional Guides
 
